@@ -1,10 +1,8 @@
 import os
 import discord
-import json
 from yt_dlp import YoutubeDL
 import re
-import shutil
-import zipfile
+
 
 
 """
