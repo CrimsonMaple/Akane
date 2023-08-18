@@ -25,8 +25,13 @@ async def say_hello(message):
     
     await g_channel.send(f"Hello, {user.mention}")
 
+#=======================================================================================
+# YT-DLP Helper Functions
+#=======================================================================================
+
+# Check if URL is a Youtube URL.
 def validate_youtube_url(url):
-    # Check if URL is a Youtube URL.
+    # Youtube link REGEX check.
     if url is not None and url != '':
         reg_exp = re.compile(r'^(?:https?:\/\/)?(?:m\.|www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))((\w|-){11})(?:\S+)?$')
     
@@ -35,9 +40,10 @@ def validate_youtube_url(url):
         return False
     
     return True
-        
 
+# Validates the download's existance and returns path.
 def fetch_music_path(folder_path):
+    # Check file exists.
     if not os.path.exists(folder_path):
         print(f"Folder '{folder_path}' does not exist.")
         return
@@ -59,11 +65,10 @@ def fetch_music_path(folder_path):
     else:
         print("No mp3 file found in the 'song' folder.")
 
+# Downloads a Youtube Link using YT-DLP converts the contents to MP3 and uploads to discord
 @default_client.event
 async def yt_dlp(message):
-    # TODO: Download a Youtube Link using YT-DLP.
-    # TODO: Convert video to MP3 using FFMPEG.
-    # TODO: Zip the contents and upload to Discord FS.
+    # Setup
     user = message.author
     g_channel = message.channel
 
@@ -72,7 +77,7 @@ async def yt_dlp(message):
     # Get youtube link out of text and check if its valid.
     url = url[7:]
     if not validate_youtube_url(url):
-        await g_channel.send(f'{user.mention}! Master! I think the link may be incorrect..."')
+        await g_channel.send(f'{user.mention}! I think the link may be incorrect..."')
         return
     
     # Setup yt-dlp arguments.
@@ -97,12 +102,10 @@ async def yt_dlp(message):
     music_path = os.path.join(os.getcwd(), "song")
     mp3_file = fetch_music_path(music_path)
 
-    await g_channel.send("Here's the song for you master!~", file=discord.File(mp3_file))
+    await g_channel.send("Here's the song for you!~", file=discord.File(mp3_file))
     
     # Delete song when we're done.
     os.remove(mp3_file)
-
-
 
 @default_client.event
 async def help_message(message):
@@ -110,7 +113,7 @@ async def help_message(message):
 
     help_messages = {
                      "!hello"      : "Send a reply!",
-                     "!fetch"        : "Grabs a Youtube Video and Converts it to MP3.",
+                     "!fetch"      : "Grabs a Youtube Video and Converts it to MP3.",
                      "!help"       : "Display this message!"}
     for command in help_messages:
         await g_channel.send(f"{command} - {help_messages[command]}")
