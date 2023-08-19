@@ -3,8 +3,6 @@ import discord
 from yt_dlp import YoutubeDL
 import re
 
-
-
 """
     AkaneBot, A simple discord bot designed to download youtube videos to convert to mp3.
 
@@ -89,10 +87,12 @@ async def yt_dlp(message):
         'preferredcodec': 'mp3',
     }],
 
-    'outtmpl': '/song/%(title)s.%(ext)s'
+    'outtmpl': os.path.join(os.getcwd(), 'song/%(title)s.%(ext)s')
     }
 
-    
+    # Checking output path for linux bug.
+    print(ydl_opts)
+
     # Link is valid feed it into yt-dlp.
     with YoutubeDL(ydl_opts) as ydl:
         error_code = ydl.download(url)
