@@ -58,7 +58,7 @@ class akane_client(discord.Client):
             command = ""
 
             # basic command
-            if text[0] == "!":
+            if text is not "" and text[0] == "!":
                 # Split String for command args.
                 args = text[1:].split()
                 print (args)
