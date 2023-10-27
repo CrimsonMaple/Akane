@@ -75,13 +75,9 @@ def fetch_music_path(folder_path):
         print("No mp3 file found in the 'song' folder.")
 
 # Limited storage device, delete all songs at midnight.
-def song_cleaner(computer_path, dropbox_path):
+def song_cleaner(dropbox_path):
     # Delete local file in 5 minutes.
-    time.sleep(5 * 60)
-    print(f"deleting file @ {computer_path}")
-    os.remove(computer_path)
-
-    time.sleep(25 * 60)
+    time.sleep(30 * 60)
     print(f"deleting file @ {dropbox_path}")
     dropbox_client.files_delete(dropbox_path)
 
@@ -134,9 +130,11 @@ async def yt_dlp(message):
     try:
         dropbox_client.files_upload(open(computer_path, "rb").read(), dropbox_path)
         print("[UPLOADED] {}".format(computer_path))
+        
     except Exception as e:
         print(e)
-        
+    
+    os.remove(computer_path)
 
     # Get download link from dropbox.
     song_link = dropbox_client.files_get_temporary_link(dropbox_path)
@@ -145,7 +143,7 @@ async def yt_dlp(message):
     await g_channel.send(f"Here's the song for you!~\nIt will be live for 30 minutes!~\n\n{song_link.link}")
 
     # Spawn task to delete song in 30 minutes.
-    cleaner_thread = Thread(target=song_cleaner, args=[computer_path, dropbox_path])
+    cleaner_thread = Thread(target=song_cleaner, args=[dropbox_path])
     cleaner_thread.start()
 
 @default_client.event

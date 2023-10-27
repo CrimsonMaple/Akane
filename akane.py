@@ -1,3 +1,4 @@
+import os
 import discord
 import commands as Akane
 
@@ -89,7 +90,7 @@ def akane_bot():
     print("Akane at your service, Master!\n")
 
     # Open my config, and read out he token.
-    config = parse_config("config.txt")
+    config = parse_config(os.path.join(os.getcwd(), "config.txt"))
     print("Akane is being loaded using token:", config["token"])
 
     # Connect in Dropbox
