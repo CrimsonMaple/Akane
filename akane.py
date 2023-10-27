@@ -27,6 +27,8 @@ def parse_config(path):
         # Can be expanded in the future.
         if tmp[0].strip() == "token":
             data["token"] = tmp[1].strip()
+        if tmp[0].strip() == "dropbox":
+            data["dropbox"] = tmp[1].strip()
 
     return data
 
@@ -58,7 +60,7 @@ class akane_client(discord.Client):
             command = ""
 
             # basic command
-            if text is not "" and text[0] == "!":
+            if text != "" and text[0] == "!":
                 # Split String for command args.
                 args = text[1:].split()
                 print (args)
@@ -89,6 +91,10 @@ def akane_bot():
     # Open my config, and read out he token.
     config = parse_config("config.txt")
     print("Akane is being loaded using token:", config["token"])
+
+    # Connect in Dropbox
+    Akane.dropbox_create_connection(config["dropbox"])
+    print(f"Dropbox is using this token: {config['dropbox']}")
 
     # Launch the client
     client = akane_client(intents=discord.Intents(messages=True, message_content=True))

@@ -1,5 +1,8 @@
 import os
 import discord
+import dropbox
+from threading import Thread
+import time
 from yt_dlp import YoutubeDL
 import re
 
@@ -9,6 +12,14 @@ import re
     Author: Krystal V. (CrimsonMaple)
     License: BSD Version 3.
 """
+#=======================================================================================
+# Dropbox Connection.
+#=======================================================================================
+dropbox_client = dropbox.Dropbox
+def dropbox_create_connection(dropbox_access_token):
+    global dropbox_client
+    dropbox_client = dropbox.Dropbox(dropbox_access_token)
+    print("[NOTICE]: Dropbox connection is live.")
 
 #=======================================================================================
 # This is a complete hack, might want to rework this.
@@ -52,7 +63,7 @@ def fetch_music_path(folder_path):
     for root, dirs, files in os.walk(folder_path):
         for file in files:
             if file.lower().endswith('.mp3'):
-                mp3_file = os.path.join(root, file)
+                mp3_file = (os.path.join(root, file), os.path.splitext(file)[0])
                 break
         if mp3_file:
             break
@@ -62,6 +73,19 @@ def fetch_music_path(folder_path):
         return mp3_file
     else:
         print("No mp3 file found in the 'song' folder.")
+
+# Limited storage device, delete all songs at midnight.
+def song_cleaner(computer_path, dropbox_path):
+    # Delete local file in 5 minutes.
+    time.sleep(5 * 60)
+    print(f"deleting file @ {computer_path}")
+    os.remove(computer_path)
+
+    time.sleep(25 * 60)
+    print(f"deleting file @ {dropbox_path}")
+    dropbox_client.files_delete(dropbox_path)
+
+    
 
 # Downloads a Youtube Link using YT-DLP converts the contents to MP3 and uploads to discord
 @default_client.event
@@ -102,10 +126,27 @@ async def yt_dlp(message):
     music_path = os.path.join(os.getcwd(), "song")
     mp3_file = fetch_music_path(music_path)
 
-    await g_channel.send("Here's the song for you!~", file=discord.File(mp3_file))
+    # BETA: Dropbox File Upload.
+    dropbox_path = "/AkaneBot/" + mp3_file[1] + ".mp3"
+    computer_path = mp3_file[0]
+
+    # Upload file to dropbox
+    try:
+        dropbox_client.files_upload(open(computer_path, "rb").read(), dropbox_path)
+        print("[UPLOADED] {}".format(computer_path))
+    except Exception as e:
+        print(e)
+        
+
+    # Get download link from dropbox.
+    song_link = dropbox_client.files_get_temporary_link(dropbox_path)
     
-    # Delete song when we're done.
-    os.remove(mp3_file)
+    # send dropbox link.
+    await g_channel.send(f"Here's the song for you!~\nIt will be live for 30 minutes!~\n\n{song_link.link}")
+
+    # Spawn task to delete song in 30 minutes.
+    cleaner_thread = Thread(target=song_cleaner, args=[computer_path, dropbox_path])
+    cleaner_thread.start()
 
 @default_client.event
 async def help_message(message):
